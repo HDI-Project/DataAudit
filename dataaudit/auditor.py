@@ -10,9 +10,8 @@ class Auditor():
     
     def write_check_violation(self, data,filepath):
         
-        pretty_print = json.dumps(data, indent=4)
         with open(filepath, 'w') as outfile:
-            json.dump(pretty_print, outfile, indent=4)
+            json.dump(data, outfile, indent=4)
     
     def load_checkmeta(self, entitysets,meta_json_filepath):
         
@@ -21,20 +20,22 @@ class Auditor():
                   self.create_check_list(entitysets,check_againset_meta)
 
     def create_check_list(self, entitysets,check_againset_meta): 
-        
+
         #number of nans for all entities
         check_list =[]
+        violation ={}
         #creating a list of all all the check fields
         for entity in entitysets.entities:
             df =  entity.df
             entity_name = entity.id
+            if entity_name not in check_againset_meta:
+                continue
             fields = df.columns
             for field in fields:
                 for checks in check_againset_meta[entity_name]:
                     if field in checks:
                         check_list.append(checks)
-                         
-        violation = {entity_name: self.find_type(df,check_list)}               
+            violation[entity_name] = self.find_type(df,check_list)                 
         self.write_check_violation(violation , "violation_check_againset_meta.json")
         
     
@@ -100,11 +101,11 @@ class Auditor():
                     
     def find_minimum(self, attr_value):
     
-        return {"min":np.float64(min(attr_value))}
+        return {"min":np.int(min(attr_value))}
      
     def find_maximum(self, attr_value):
          
-        return {"max":np.float64(max(attr_value))}
+        return {"max":np.int(max(attr_value))}
         
     def find_distribution(self, distributions, attr_value):
         
@@ -132,7 +133,7 @@ class Auditor():
     
         mu, std = norm.fit(attr_value)
         
-        normal_distribution = {"normal": { "mean": np.float64(mu),"std": np.float64(std), "min":np.float64(min_value), "max":np.float64(max_value)}}
+        normal_distribution = {"normal": { "mean": mu,"std": std, "min":np.int(min_value), "max":np.int(max_value)}}
         # Plot the histogram.
         plt.figure()
         plt.hist(attr_value, bins=bins, density=True, alpha=0.6, color='g')

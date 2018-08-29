@@ -6,10 +6,10 @@
                     "distribution": [
                         {
                             "normal": {
-                                "max": 130,
-                                "mean": 25.4,
-                                "min": 0,
-                                "std": 2
+                                "max": 2018,
+                                "mean": 1999,
+                                "min": 1917,
+                                "std": 2000
                             }
                         }
                     ]
