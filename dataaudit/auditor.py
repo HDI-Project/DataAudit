@@ -5,6 +5,10 @@ import matplotlib.mlab as mlab
 import numpy as np
 import json
 from scipy.stats import norm
+from sklearn.neighbors import KernelDensity
+from scipy.stats import ttest_1samp
+from scipy.stats import ttest_ind
+from scipy.stats import ttest_rel
 
 class Auditor():
     
@@ -146,3 +150,47 @@ class Auditor():
         plt.show()
         
         return normal_distribution
+
+def create_distribution_from_attr(dist_type ='normal',dist_charecteristics = None,n_samples = 1000):
+
+    if dist_type == 'normal':
+        return np.random.normal(loc=dist_charecteristics['mu'], scale=dist_charecteristics['std'], size=n_samples)
+    elif dist_type == 'poisson':
+        return np.random.poisson(lam=dist_charecteristics['lambda'], size=n_samples)
+    elif dist_type == 'beta':
+        return np.random.beta(a=dist_charecteristics['a'],b=dist_charecteristics['b'], size=n_samples)
+    elif dist_type == 'gamma':
+        return np.random.gamma(shape=dist_charecteristics['k'], scale=dist_charecteristics['theta'], size=n_samples)
+    elif dist_type == 'weibull':
+        return np.random.weibull(a=dist_charecteristics['a'], size=n_samples)
+    
+def compare_distributions(x,y):
+    result = {}
+    
+    ttest_1samp_res = ttest_1samp(x,np.mean(y))
+    result['ttest_1samp_res'] = ttest_1samp_res
+    
+    ttest_ind_res = ttest_ind(x,y)
+    result['ttest_ind_res'] = ttest_ind_res
+    
+    ttest_rel_res = ttest_rel(x,y)
+    result['ttest_rel_res'] = ttest_rel_res
+    
+    x_kde = KernelDensity(kernel='gaussian', bandwidth=0.5).fit(x)
+    x_bins = np.linspace(min(x),max(x))
+    x_log_dens = x_kde.score_samples(x_bins.reshape(-1,1))
+    
+    y_kde = KernelDensity(kernel='gaussian', bandwidth=0.5).fit(y)
+    y_bins = np.linspace(min(y),max(y))
+    y_log_dens = y_kde.score_samples(y_bins.reshape(-1,1))
+    
+    
+    fig = plt.figure(figsize=(7,7))
+    ax = fig.add_subplot(111)
+    
+    ax.plot(x_bins,x_log_dens)
+    ax.plot(y_bins,y_log_dens)
+    
+    
+    
+    return result
