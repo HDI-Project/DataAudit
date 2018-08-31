@@ -45,7 +45,7 @@ setup(
     license="MIT license",
     long_description=readme + '\n\n' + history,
     long_description_content_type='text/markdown',
-    name='dataaudit',
+    name='data-audit',
     packages=find_packages(include=['dataaudit', 'dataaudit.*']),
     python_requires='>=3.4',
     setup_requires=setup_requires,
