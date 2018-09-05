@@ -116,8 +116,9 @@ class Auditor():
         for distribution in distributions:
             key = __builtins__.list(distribution)[0]
             attr = distribution[key]
-            if(key == 'normal'):
-                distributions_list.append(self.normal_distribution(attr_value, attr['min'],attr['max'],attr['mean'],attr['std']))
+            distributions_list.append(self.apply_distribution_check(attr_value,dist_type=key,dist_charecteristics=attr))
+            #if(key == 'normal'):
+            #    distributions_list.append(self.normal_distribution(attr_value, attr['min'],attr['max'],attr['mean'],attr['std']))
                 
         return distributions_list
     
