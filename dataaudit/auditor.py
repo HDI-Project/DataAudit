@@ -118,7 +118,7 @@ class Auditor():
         for distribution in distributions:
             key = __builtins__.list(distribution)[0]
             attr = distribution[key]
-            distributions_list.append(self.apply_distribution_check(attr_value,dist_type=key))                
+            distributions_list.append(self.apply_distribution_check(attr_value,dist_type=key,dist_charecteristics=attr))                
         return distributions_list
     
     
@@ -151,9 +151,35 @@ class Auditor():
         
         return normal_distribution
 
+    def create_distribution_from_attr(self,dist_type ='norm',dist_charecteristics = None,n_samples = 1000):
+        try:
+            if dist_type == 'normal':
+                return np.random.normal(loc=dist_charecteristics['mean'], scale=dist_charecteristics['std'], size=n_samples)
+            elif dist_type == 'poisson':
+                return np.random.poisson(lam=dist_charecteristics['lambda'], size=n_samples)
+            elif dist_type == 'beta':
+                return np.random.beta(a=dist_charecteristics['a'],b=dist_charecteristics['b'], size=n_samples)
+            elif dist_type == 'gamma':
+                return np.random.gamma(shape=dist_charecteristics['k'], scale=dist_charecteristics['theta'], size=n_samples)
+            elif dist_type == 'weibull':
+                return np.random.weibull(a=dist_charecteristics['a'], size=n_samples)
+            elif dist_type == 'uniform':
+                return np.random.uniform(low=dist_charecteristics['low'],high = dist_charecteristics['high'], size=n_samples)    
+            elif dist_type == 'powerlaw':
+                return np.random.power(a=dist_charecteristics['a'],size=n_samples)  
+            elif dist_type == 'expon':
+                return np.random.exponential(scale=dist_charecteristics['scale'],size=n_samples)
+        except KeyError as e:
+            print(e.args)
+            return None
     def compare_distributions_one_sample(self,x,dist_type,args = ()):
         result = {}
         ks_result = kstest(x,dist_type,args = args)
+        result['ks_test'] = {'statistic':ks_result[0],'pvalue':ks_result[1]}
+        return result
+    def compare_distributions(self,x,y):
+        result = {}
+        ks_result = ks_2samp(x,y)
         result['ks_test'] = {'statistic':ks_result[0],'pvalue':ks_result[1]}
         return result
     def identify_goodness_of_fit(self,x):
@@ -183,6 +209,16 @@ class Auditor():
                 ks_for_all_distributions.append({'name':dist.name,'ks statistic':result['ks_test']['statistic'],
                                                 'ks pvalue':result['ks_test']['pvalue'],
                                                 'mle args':mle_result})
-    def apply_distribution_check(self,x,dist_type ='normal'):
+                break
+        return {'most_fit_distribution':ks_for_all_distributions}
+    def apply_distribution_check(self,x,dist_type ='normal',dist_charecteristics = {}):
+        simulated_dist = self.create_distribution_from_attr(dist_type = dist_type,dist_charecteristics = dist_charecteristics,n_samples = 10000)
+        if simulated_dist is not None:
+            simulated_dist_result = self.compare_distributions(x,simulated_dist)
+        else:
+            simulated_dist_result = {'ks_test':'Incomplete distribution information'}
         most_fit_dist = self.identify_goodness_of_fit(x)
-        return {dist_type:most_fit_dist}
+        print(simulated_dist_result)
+        print(most_fit_dist)
+        simulated_dist_result.update(most_fit_dist)
+        return {dist_type:simulated_dist_result}
