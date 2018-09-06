@@ -25,10 +25,10 @@ class Auditor():
 
     def create_check_list(self, entitysets,check_againset_meta): 
 
-        #number of nans for all entities
+        # Number of nans for all entities.
         check_list =[]
         violation ={}
-        #creating a list of all all the check fields
+        # Creating a list of all all the check fields.
         for entity in entitysets.entities:
             df =  entity.df
             entity_name = entity.id
@@ -45,7 +45,7 @@ class Auditor():
     
     def check_total_nans(self,entity_name,df):
         
-        #checks the number of nans for all the columns within a specific entity 
+        # Checks the number of nans for all the columns within a specific entity. 
         number_of_nan =[]
         dict_values = df.to_dict('list')
         attr_value_list = []
@@ -59,7 +59,7 @@ class Auditor():
     
     def check_nan(self,attr_value):
         
-        #number of nans for a specific entity
+        # Number of nans for a specific entity.
         summation = sum(value in [nan,'null','nan','NAN','Nan','NaN', 'undefined', 'unknown'] for value in attr_value)
         percentage_of_nans = (summation/len(attr_value))*100
         percentage_of_nans = "%.2f%%" % round(percentage_of_nans,2)
@@ -68,14 +68,14 @@ class Auditor():
     def find_type(self,df,check_list):
         
         fields_list = []
-        #extract the list of checks for each column
+        # Extract the list of checks for each column.
         for checks in check_list:
             modefied_check_list = []
-        # get the column name 
+        # Get the column name. 
             key = __builtins__.list(checks)[0]
-        #extract all values
+        # Extract all values.
             attr_value = df[key].values
-        #extract the list of checks for a specific column
+        # Extract the list of checks for a specific column.
             for check in checks[key]:
                 if("distribution" in check):
                     modefied_check_list.append({"distribution":self.find_distribution(check["distribution"],attr_value)})
@@ -125,11 +125,11 @@ class Auditor():
     
     def normal_distribution(self, attr_value,min_x, max_x, mu, sigma):
     
-        # Expected normal distribution
+        # Expected normal distribution.
         x = np.linspace(min_x, max_x)
         plt.plot(x,mlab.normpdf(x, mu, sigma), linestyle='dashed')
     
-        # Fit a normal distribution to the data:
+        # Fit a normal distribution to the data.
         binwidth = 1
         min_value = min(attr_value)
         max_value = max(attr_value)
