@@ -6,8 +6,10 @@ import numpy as np
 import json
 from scipy.stats import norm
 from sklearn.neighbors import KernelDensity
-from scipy.stats import ks_2samp
+from scipy.stats import ks_2samp,kstest
 from scipy.stats import beta,norm,gamma,uniform,expon,powerlaw
+from scipy import stats
+import warnings
 
 class Auditor():
     
@@ -116,7 +118,7 @@ class Auditor():
         for distribution in distributions:
             key = __builtins__.list(distribution)[0]
             attr = distribution[key]
-            distributions_list.append(self.apply_distribution_check(attr_value,dist_type=key,dist_charecteristics=attr))                
+            distributions_list.append(self.apply_distribution_check(attr_value,dist_type=key))                
         return distributions_list
     
     
@@ -149,80 +151,38 @@ class Auditor():
         
         return normal_distribution
 
-    def create_distribution_from_attr(self,dist_type ='normal',dist_charecteristics = None,n_samples = 1000):
-        try:
-            if dist_type == 'normal':
-                return np.random.normal(loc=dist_charecteristics['mean'], scale=dist_charecteristics['std'], size=n_samples)
-            elif dist_type == 'poisson':
-                return np.random.poisson(lam=dist_charecteristics['lambda'], size=n_samples)
-            elif dist_type == 'beta':
-                return np.random.beta(a=dist_charecteristics['a'],b=dist_charecteristics['b'], size=n_samples)
-            elif dist_type == 'gamma':
-                return np.random.gamma(shape=dist_charecteristics['k'], scale=dist_charecteristics['theta'], size=n_samples)
-            elif dist_type == 'weibull':
-                return np.random.weibull(a=dist_charecteristics['a'], size=n_samples)
-            elif dist_type == 'uniform':
-                return np.random.uniform(low=dist_charecteristics['low'],high = dist_charecteristics['high'], size=n_samples)    
-            elif dist_type == 'power':
-                return np.random.power(a=dist_charecteristics['a'],size=n_samples)  
-            elif dist_type == 'exponential':
-                return np.random.exponential(scale=dist_charecteristics['scale'],size=n_samples)
-        except KeyError, e:
-            return None
-
-    
-    def compare_distributions(self,x,y):
+    def compare_distributions_one_sample(self,x,dist_type,args = ()):
         result = {}
-        
-        ks_result = ks_2samp(x,y)
-        
+        ks_result = kstest(x,dist_type,args = args)
         result['ks_test'] = {'statistic':ks_result[0],'pvalue':ks_result[1]}
-        
         return result
-    def identify_goodness_of_fit(self, x):
-        list_of_distributions = [{'dist':norm,'name':'normal'},
-                                {'dist':beta,'name':'beta'},
-                                {'dist':gamma,'name':'gamma'},
-                                {'dist':uniform,'name':'uniform'},
-                                {'dist':powerlaw,'name':'power'},
-                                {'dist':expon,'name':'exponential'}]
+    def identify_goodness_of_fit(self,x):
+        list_of_distributions = [stats.alpha,stats.anglit,stats.arcsine,stats.beta,stats.betaprime,stats.bradford,
+        stats.burr,stats.cauchy,stats.chi,stats.chi2,stats.cosine,stats.dgamma,stats.dweibull,
+        stats.erlang,stats.expon,stats.exponnorm,stats.exponweib,stats.exponpow,stats.f,
+        stats.fatiguelife,stats.fisk,stats.foldcauchy,stats.foldnorm,stats.frechet_r,
+        stats.frechet_l,stats.genlogistic,stats.genpareto,stats.gennorm,stats.genexpon,
+        stats.genextreme,stats.gausshyper,stats.gamma,stats.gengamma,stats.genhalflogistic,
+        stats.gilbrat,stats.gompertz,stats.gumbel_r,stats.gumbel_l,stats.halfcauchy,
+        stats.halflogistic,stats.halfnorm,stats.halfgennorm,stats.hypsecant,stats.invgamma,
+        stats.invgauss,stats.invweibull,stats.johnsonsb,stats.johnsonsu,stats.ksone,
+        stats.kstwobign,stats.laplace,stats.levy,stats.levy_l,
+        stats.logistic,stats.loggamma,stats.loglaplace,stats.lognorm,stats.lomax,stats.maxwell,
+        stats.mielke,stats.nakagami,stats.ncx2,stats.ncf,stats.nct,stats.norm,stats.pareto,
+        stats.pearson3,stats.powerlaw,stats.powerlognorm,stats.powernorm,stats.rdist,stats.reciprocal,
+        stats.rayleigh,stats.rice,stats.recipinvgauss,stats.semicircular,stats.t,stats.triang,
+        stats.truncexpon,stats.truncnorm,stats.tukeylambda,stats.uniform,stats.vonmises,
+        stats.vonmises_line,stats.wald,stats.weibull_min,stats.weibull_max,stats.wrapcauchy]
+
         ks_for_all_distributions = []
-        for dist in list_of_distributions:
-            mle_result = dist['dist'].fit(x)
-        
-            if dist['dist'] == norm:
-                simulated_dist = dist['dist'].rvs(loc = mle_result[-2],scale = mle_result[-1],size = 1000)
-                result = self.compare_distributions(x,simulated_dist)
-            elif dist['dist'] == beta:
-                simulated_dist = dist['dist'].rvs(mle_result[0],mle_result[1],loc = mle_result[-2],
-                                                    scale = mle_result[-1],size = 1000)
-                result = self.compare_distributions(x,simulated_dist)
-            elif dist['dist'] == gamma:
-                simulated_dist = dist['dist'].rvs(mle_result[0],loc = mle_result[-2],
-                                                    scale = mle_result[-1],size = 1000)
-                result = self.compare_distributions(x,simulated_dist)
-            elif dist['dist'] == uniform:
-                simulated_dist = dist['dist'].rvs(loc = mle_result[-2],scale = mle_result[-1],size = 1000)
-                result = self.compare_distributions(x,simulated_dist)
-            elif dist['dist'] == powerlaw:
-                simulated_dist = dist['dist'].rvs(mle_result[0],loc = mle_result[-2],
-                                                    scale = mle_result[-1],size = 1000)
-                result = self.compare_distributions(x,simulated_dist)
-            elif dist['dist'] == expon:
-                simulated_dist = dist['dist'].rvs(loc = mle_result[-2],scale = mle_result[-1],size = 1000)
-                result = self.compare_distributions(x,simulated_dist)
-            ks_for_all_distributions.append({'name':dist['name'],'ks statistic':result['ks_test']['statistic'],
-                                                    'ks pvalue':result['ks_test']['pvalue'],'mle args':mle_result})
-        return {'most_fit_distribution':ks_for_all_distributions}
-    def apply_distribution_check(self,x,dist_type ='normal',dist_charecteristics = None):
-        
-        simulated_dist = self.create_distribution_from_attr(dist_type = dist_type,dist_charecteristics = dist_charecteristics,
-                                                    n_samples = 10000)
-        if simulated_dist != None:
-            simulated_dist_result = self.compare_distributions(x,simulated_dist)
-        else:
-            simulated_dist_result = {'ks_test':'Incomplete distribution information'}
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore')
+            for dist in list_of_distributions:
+                mle_result = dist.fit(x)
+                result = self.compare_distributions_one_sample(x,dist.name,args = mle_result)
+                ks_for_all_distributions.append({'name':dist.name,'ks statistic':result['ks_test']['statistic'],
+                                                'ks pvalue':result['ks_test']['pvalue'],
+                                                'mle args':mle_result})
+    def apply_distribution_check(self,x,dist_type ='normal'):
         most_fit_dist = self.identify_goodness_of_fit(x)
-        simulated_dist_result.update(most_fit_dist)
-        
-        return simulated_dist_result
+        return {dist_type:most_fit_dist}
