@@ -116,10 +116,7 @@ class Auditor():
         for distribution in distributions:
             key = __builtins__.list(distribution)[0]
             attr = distribution[key]
-            distributions_list.append(self.apply_distribution_check(attr_value,dist_type=key,dist_charecteristics=attr))
-            #if(key == 'normal'):
-            #    distributions_list.append(self.normal_distribution(attr_value, attr['min'],attr['max'],attr['mean'],attr['std']))
-                
+            distributions_list.append(self.apply_distribution_check(attr_value,dist_type=key,dist_charecteristics=attr))                
         return distributions_list
     
     
@@ -153,28 +150,32 @@ class Auditor():
         return normal_distribution
 
     def create_distribution_from_attr(self,dist_type ='normal',dist_charecteristics = None,n_samples = 1000):
-        if dist_type == 'normal':
-            return np.random.normal(loc=dist_charecteristics['mu'], scale=dist_charecteristics['std'], size=n_samples)
-        elif dist_type == 'poisson':
-            return np.random.poisson(lam=dist_charecteristics['lambda'], size=n_samples)
-        elif dist_type == 'beta':
-            return np.random.beta(a=dist_charecteristics['a'],b=dist_charecteristics['b'], size=n_samples)
-        elif dist_type == 'gamma':
-            return np.random.gamma(shape=dist_charecteristics['k'], scale=dist_charecteristics['theta'], size=n_samples)
-        elif dist_type == 'weibull':
-            return np.random.weibull(a=dist_charecteristics['a'], size=n_samples)
-        elif dist_type == 'uniform':
-            return np.random.uniform(low=dist_charecteristics['low'],high = dist_charecteristics['high'], size=n_samples)    
-        elif dist_type == 'power':
-            return np.random.power(a=dist_charecteristics['a'],size=n_samples)  
-        elif dist_type == 'exponential':
-            return np.random.exponential(scale=dist_charecteristics['scale'],size=n_samples)  
+        try:
+            if dist_type == 'normal':
+                return np.random.normal(loc=dist_charecteristics['mean'], scale=dist_charecteristics['std'], size=n_samples)
+            elif dist_type == 'poisson':
+                return np.random.poisson(lam=dist_charecteristics['lambda'], size=n_samples)
+            elif dist_type == 'beta':
+                return np.random.beta(a=dist_charecteristics['a'],b=dist_charecteristics['b'], size=n_samples)
+            elif dist_type == 'gamma':
+                return np.random.gamma(shape=dist_charecteristics['k'], scale=dist_charecteristics['theta'], size=n_samples)
+            elif dist_type == 'weibull':
+                return np.random.weibull(a=dist_charecteristics['a'], size=n_samples)
+            elif dist_type == 'uniform':
+                return np.random.uniform(low=dist_charecteristics['low'],high = dist_charecteristics['high'], size=n_samples)    
+            elif dist_type == 'power':
+                return np.random.power(a=dist_charecteristics['a'],size=n_samples)  
+            elif dist_type == 'exponential':
+                return np.random.exponential(scale=dist_charecteristics['scale'],size=n_samples)
+        except KeyError, e:
+            return None
 
     
     def compare_distributions(self,x,y):
         result = {}
         
         ks_result = ks_2samp(x,y)
+        
         result['ks_test'] = {'statistic':ks_result[0],'pvalue':ks_result[1]}
         
         return result
@@ -217,7 +218,10 @@ class Auditor():
         
         simulated_dist = self.create_distribution_from_attr(dist_type = dist_type,dist_charecteristics = dist_charecteristics,
                                                     n_samples = 10000)
-        simulated_dist_result = self.compare_distributions(x,simulated_dist)
+        if simulated_dist != None:
+            simulated_dist_result = self.compare_distributions(x,simulated_dist)
+        else:
+            simulated_dist_result = {'ks_test':'Incomplete distribution information'}
         most_fit_dist = self.identify_goodness_of_fit(x)
         simulated_dist_result.update(most_fit_dist)
         
