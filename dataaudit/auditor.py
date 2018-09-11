@@ -188,13 +188,13 @@ class Auditor():
 
     def find_distribution(self, distributions, attr_value):
         '''Create a list of dictionaries after comparing all the continous distributions using ks-test.
-        
+
         Args:
             distributions: A list of different types of distributions for a specific attribute.
             attr_value: A list of values for the a specific attribute.
-        
+
         Returns:
-            A list of dictionaries resulted after the comparison using ks-test for all continous distributions.
+            A list of dictionaries after comparing all the continous distributions using ks-test.
         '''
         distributions_list = []
         for distribution in distributions:
@@ -250,14 +250,15 @@ class Auditor():
 
     def compare_distributions_one_sample(self, x, dist_type, args=()):
         '''Compares one sample of values to a certain distribution.
-        
+
         Args:
             x: A 1-D array of observations of random variable.
             dist_type: The name of the distribution to compare to.
             args: The arguments of the distribution according to scipy continous distributions.
 
         Returns:
-            A dictionary of the comparison result using ks-test ({'statistic': 0.1, 'pvalue': 0.01}).
+            A dictionary of the comparison result using ks-test
+            ({'statistic': 0.1, 'pvalue': 0.01}).
         '''
         result = {}
         ks_result = kstest(x, dist_type, args=args)
@@ -266,12 +267,13 @@ class Auditor():
 
     def compare_distributions(self, x, y):
         '''Compares if two samples come from the same distribution.
-        
+
         Args:
             x: A 1-D array of observations of random variable.
             y: A 1-D array of observations of random variable.
         Returns:
-            A dictionary of the comparison result using ks-test ({'statistic': 0.1, 'pvalue': 0.01}).
+            A dictionary of the comparison result using ks-test
+            ({'statistic': 0.1, 'pvalue': 0.01}).
         '''
         result = {}
         ks_result = ks_2samp(x, y)
@@ -280,10 +282,10 @@ class Auditor():
 
     def identify_goodness_of_fit(self, x):
         '''Generates the most fitted distribution to the given observations.
-        
+
         Args:
             x: A 1-D array of observations of random variable.
-            
+
         Returns:
             A dictionary of the comparison result using ks-test for all continous distributions.
         '''
@@ -330,12 +332,12 @@ class Auditor():
 
     def apply_distribution_check(self, x, dist_type='normal', dist_charecteristics={}):
         '''Applies the one and two samples distribution comparisons.
-        
+
         Args:
             x: A 1-D array of observations of random variable.
             dist_type: The name of the distribution to draw from.
             dist_charecteristics: A dictionary that contains the attributes of the distribution.
-        
+
         Returns:
             A dictionary of the comparison result using ks-test for all continous distributions.
         '''
