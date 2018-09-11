@@ -176,7 +176,20 @@ class Auditor():
         return normal_distribution
 
     def create_distribution_from_attr(
-            self, dist_type='norm', dist_charecteristics=None, n_samples=1000):
+            self, dist_type, dist_charecteristics, n_samples=1000):
+        '''Generate a sample of values that are drawn from the chosen distribution.
+
+        Args:
+            dist_type: str
+                The name of the distribution to draw from.
+            dist_charecteristics: dict
+                dictionary that contains the attributes of the distribution.
+            n_samples: int,optional
+                the number of values to draw from the distribution
+
+        Returns:
+            A list of the sampled values from the distributions.
+        '''
         try:
             if dist_type == 'normal':
                 return np.random.normal(loc=dist_charecteristics['mean'],
@@ -207,18 +220,46 @@ class Auditor():
             return None
 
     def compare_distributions_one_sample(self, x, dist_type, args=()):
+        '''compares one sample of values to a certain distribution.
+        Args:
+            x: array
+                1-D array of observations of random variable.
+            dist_type: dict
+                The name of the distribution to compare to.
+            args: tuple
+                the arguments of the distribution according to scipy continous distributions
+
+        Returns:
+            A dictionary of the comparison result using ks-test ({'statistic': 0.1, 'pvalue': 0.01}).
+        '''
         result = {}
         ks_result = kstest(x, dist_type, args=args)
         result['ks_test'] = {'statistic': ks_result[0], 'pvalue': ks_result[1]}
         return result
 
     def compare_distributions(self, x, y):
+        '''compares if two samples come from the same distribution.
+        Args:
+            x: array
+                1-D array of observations of random variable.
+            y: array
+                1-D array of observations of random variable.
+        Returns:
+            A dictionary of the comparison result using ks-test ({'statistic': 0.1, 'pvalue': 0.01}).
+        '''
         result = {}
         ks_result = ks_2samp(x, y)
         result['ks_test'] = {'statistic': ks_result[0], 'pvalue': ks_result[1]}
         return result
 
     def identify_goodness_of_fit(self, x):
+        '''Generate the most fitted distribution to the given observations
+        Args:
+            x: array
+                1-D array of observations of random variable.
+        Returns:
+            A dictionary of the comparison result using ks-test for all continous distributions.
+        '''
         list_of_distributions = [stats.alpha, stats.anglit, stats.arcsine, stats.beta,
                                  stats.betaprime, stats.bradford, stats.wald,
                                  stats.burr, stats.cauchy, stats.chi, stats.chi2,
@@ -261,6 +302,17 @@ class Auditor():
         return ks_for_all_distributions
 
     def apply_distribution_check(self, x, dist_type='normal', dist_charecteristics={}):
+        '''apply the one and two samples distribution comparisons
+        Args:
+            x: array
+                1-D array of observations of random variable.
+            dist_type: str,optional
+                The name of the distribution to draw from.
+            dist_charecteristics: dict,optional
+                dictionary that contains the attributes of the distribution.
+        Returns:
+            A dictionary of the comparison result using ks-test for all continous distributions.
+        '''
         simulated_dist = self.create_distribution_from_attr(
             dist_type=dist_type, dist_charecteristics=dist_charecteristics, n_samples=10000)
         if simulated_dist is not None:
