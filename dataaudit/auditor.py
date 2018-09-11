@@ -1,34 +1,49 @@
 import json
 import warnings
 
-import matplotlib.mlab as mlab
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from numpy import nan
 from scipy import stats
-from scipy.stats import ks_2samp, kstest, norm
+from scipy.stats import ks_2samp, kstest
 
 
 class Auditor():
+    '''A class responsible for data auditing.'''
 
     def write_check_violation(self, data, filepath):
+        '''Writes all the violation into json file.
 
+        Args:
+          data: A json object, which encapsulates a new value
+              for each check.
+          filepath: A path for the json file.
+        '''
         with open(filepath, 'w') as outfile:
             json.dump(data, outfile, indent=4)
 
     def load_checkmeta(self, entitysets, meta_json_filepath):
+        '''Loads all the checks from the json file.
 
+        Args:
+          entitysets: The entire Fhir entitysets.
+          meta_json_filepath: A path for the json file.
+        '''
         with open(meta_json_filepath) as file:
             check_againset_meta = json.load(file)
             self.create_check_list(entitysets, check_againset_meta)
 
     def create_check_list(self, entitysets, check_againset_meta):
+        '''Creates a list of all the check fields from the json file.
 
+        Args:
+          entitysets: The entire Fhir entitysets.
+          check_againset_meta: A json object, which encapsulates a value
+              for each check.
+        '''
         # Number of nans for all entities.
         check_list = []
         violation = {}
-        # Creating a list of all all the check fields.
         for entity in entitysets.entities:
             df = entity.df
             entity_name = entity.id
@@ -43,8 +58,15 @@ class Auditor():
         self.write_check_violation(violation, "violation_check_againset_meta.json")
 
     def check_total_nans(self, entity_name, df):
+        '''Checks the number of nans for all the attributes within a specific entity.
 
-        # Checks the number of nans for all the columns within a specific entity.
+        Args:
+            entity_name: The name of the entity.
+            df: A dataframe, which encapsulates all the records of that entity.
+
+        Returns:
+            A list with the number of nans for all the attributes.
+        '''
         number_of_nan = []
         dict_values = df.to_dict('list')
         attr_value_list = []
@@ -66,8 +88,14 @@ class Auditor():
         return number_of_nan
 
     def check_nan(self, attr_value):
+        '''Checks the number of nans for a specific attribute within an entity.
 
-        # Number of nans for a specific entity.
+        Args:
+            attr_value: A list of values for specific attribute.
+
+        Returns:
+            A dictionary with the number of nans for a specific attribute.
+        '''
         summation = sum(
             value in [
                 nan,
@@ -83,7 +111,15 @@ class Auditor():
         return {"nan": {"number": summation, "percenatge": percentage_of_nans}}
 
     def find_type(self, df, check_list):
+        '''Finds the type of all the checks for a specific attribute.
 
+        Args:
+            df: A dataframe, which encapsulates all the records of that entity.
+            check_list: A list of all the required checks for a specific attribute.
+
+        Returns:
+            A list with all the checks and their new values.
+        '''
         fields_list = []
         # Extract the list of checks for each column.
         for checks in check_list:
@@ -110,7 +146,15 @@ class Auditor():
         return fields_list
 
     def find_percentage(self, key, attr_value):
+        '''Calculates the percentage frequency distribution of the attribute values.
 
+        Args:
+            key: A name of an attribute.
+            attr_value: A list of values for the a specific attribute.
+
+        Returns:
+            A dictionary with the percentage for each value.
+        '''
         dictionary_of_percenatges = {}
         df = pd.DataFrame({key: attr_value})
         number_of_records = len(df)
@@ -121,15 +165,29 @@ class Auditor():
         return{"percenatge": dictionary_of_percenatges}
 
     def find_minimum(self, attr_value):
+        '''Finds the minimum value in a specific attribute.
 
+        Args:
+            attr_value: A list of values for the a specific attribute.
+
+        Returns:
+            A dictionary with the minimum value.
+        '''
         return {"min": np.int(min(attr_value))}
 
     def find_maximum(self, attr_value):
+        '''Finds the maximum value in a specific attribute.
 
+        Args:
+            attr_value: A list of values for the a specific attribute.
+
+        Returns:
+            A dictionary with the maximum value.
+        '''
         return {"max": np.int(max(attr_value))}
 
     def find_distribution(self, distributions, attr_value):
-
+        '''Finds'''
         distributions_list = []
         for distribution in distributions:
             key = __builtins__.list(distribution)[0]
@@ -141,42 +199,15 @@ class Auditor():
                     dist_charecteristics=attr))
         return distributions_list
 
-    def normal_distribution(self, attr_value, min_x, max_x, mu, sigma):
-
-        # Expected normal distribution.
-        x = np.linspace(min_x, max_x)
-        plt.plot(x, mlab.normpdf(x, mu, sigma), linestyle='dashed')
-
-        # Fit a normal distribution to the data.
-        binwidth = 1
-        min_value = min(attr_value)
-        max_value = max(attr_value)
-        bins = range(min_value, max_value + binwidth, binwidth)
-
-        mu, std = norm.fit(attr_value)
-
-        normal_distribution = {
-            "normal": {
-                "mean": mu,
-                "std": std,
-                "min": np.int(min_value),
-                "max": np.int(max_value)}}
-        # Plot the histogram.
-        plt.figure()
-        plt.hist(attr_value, bins=bins, density=True, alpha=0.6, color='g')
-
-        # Plot the PDF.
-        plt.figure()
-        p = norm.pdf(x, mu, std)
-        plt.plot(x, p, 'k', linewidth=2)
-        title = "Fit results: mu = %.2f,  std = %.2f" % (mu, std)
-        plt.title(title)
-        plt.show()
-
-        return normal_distribution
-
     def create_distribution_from_attr(
             self, dist_type='norm', dist_charecteristics=None, n_samples=1000):
+        '''Creates the distribution for a specific attribute based on the specified type.
+
+        Args:
+
+        Returns:
+            A distribution for a specific attribute based on the specified type.
+        '''
         try:
             if dist_type == 'normal':
                 return np.random.normal(loc=dist_charecteristics['mean'],
