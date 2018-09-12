@@ -197,11 +197,13 @@ class Auditor():
             A list of dictionaries after comparing all the continous distributions using ks-test.
         '''
         distributions_list = []
+        all_distributions_checks = self.identify_goodness_of_fit(attr_value)
+        distributions_list.append(all_distributions_checks)
         for distribution in distributions:
             key = __builtins__.list(distribution)[0]
             attr = distribution[key]
             distributions_list.append(
-                self.apply_distribution_check(
+                self.apply_predefined_distribution_check(
                     attr_value,
                     dist_type=key,
                     dist_charecteristics=attr))
@@ -327,10 +329,9 @@ class Auditor():
                                                  'ks statistic': result['ks_test']['statistic'],
                                                  'ks pvalue': result['ks_test']['pvalue'],
                                                  'mle args': list(mle_result)})
-                break
-        return ks_for_all_distributions
+        return {'most_fit_distribution':ks_for_all_distributions}
 
-    def apply_distribution_check(self, x, dist_type='normal', dist_charecteristics={}):
+    def apply_predefined_distribution_check(self, x, dist_type='normal', dist_charecteristics={}):
         '''Applies the one and two samples distribution comparisons.
 
         Args:
@@ -339,7 +340,7 @@ class Auditor():
             dist_charecteristics: A dictionary that contains the attributes of the distribution.
 
         Returns:
-            A dictionary of the comparison result using ks-test for all continous distributions.
+            A dictionary of the comparison result using ks-test for specific continous distributions.
         '''
         simulated_dist = self.create_distribution_from_attr(
             dist_type=dist_type, dist_charecteristics=dist_charecteristics, n_samples=10000)
@@ -349,6 +350,4 @@ class Auditor():
             simulated_dist_result = {
                 'ks_test': 'Incomplete distribution information\
                  or distribution error not available'}
-        most_fit_dist = self.identify_goodness_of_fit(x)
-        simulated_dist_result['most_fit_distribution'] = most_fit_dist
         return {dist_type: simulated_dist_result}
