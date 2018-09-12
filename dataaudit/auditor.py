@@ -350,6 +350,4 @@ class Auditor():
             simulated_dist_result = {
                 'ks_test': 'Incomplete distribution information\
                  or distribution error not available'}
-        most_fit_dist = self.identify_goodness_of_fit(x)
-        simulated_dist_result['most_fit_distribution'] = most_fit_dist
         return {dist_type: simulated_dist_result}
