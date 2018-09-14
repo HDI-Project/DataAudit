@@ -71,19 +71,7 @@ class Auditor():
         dict_values = df.to_dict('list')
         attr_value_list = []
         for attr, values in dict_values.items():
-            summation = sum(
-                value in [
-                    nan,
-                    'null',
-                    'nan',
-                    'NAN',
-                    'Nan',
-                    'NaN',
-                    'undefined',
-                    'unknown'] for value in values)
-            percentage_of_nans = (summation / len(values)) * 100
-            percentage_of_nans = "%.2f%%" % round(percentage_of_nans, 2)
-            attr_value_list.append({attr: [summation, percentage_of_nans]})
+            attr_value_list.append({attr: self.check_nan(values)})
         number_of_nan.append({entity_name: attr_value_list})
         return number_of_nan
 
@@ -125,7 +113,7 @@ class Auditor():
         for checks in check_list:
             modefied_check_list = []
         # Get the column name.
-            key = __builtins__.list(checks)[0]
+            key = list(checks)[0]
         # Extract all values.
             attr_value = df[key].values
         # Extract the list of checks for a specific column.
@@ -133,7 +121,7 @@ class Auditor():
                 if("distribution" in check):
                     modefied_check_list.append(
                         {"distribution": self.find_distribution(check["distribution"],
-                                                                attr_value)})
+                                                                attr_value, 5)})
                 if("min" in check):
                     modefied_check_list.append(self.find_minimum(attr_value))
                 if("max" in check):
@@ -173,7 +161,10 @@ class Auditor():
         Returns:
             A dictionary with the minimum value.
         '''
-        return {"min": np.int(min(attr_value))}
+        if(all(isinstance(x, (int, float)) for x in attr_value)):
+            return {"min": np.int(min(attr_value))}
+        else:
+            raise TypeError("The list: '{}' must be numerical".format(attr_value))
 
     def find_maximum(self, attr_value):
         '''Finds the maximum value in a specific attribute.
@@ -184,9 +175,12 @@ class Auditor():
         Returns:
             A dictionary with the maximum value.
         '''
-        return {"max": np.int(max(attr_value))}
+        if(all(isinstance(x, (int, float)) for x in attr_value)):
+            return {"max": np.int(max(attr_value))}
+        else:
+            raise TypeError("The list: '{}' must be numerical".format(attr_value))
 
-    def find_distribution(self, distributions, attr_value):
+    def find_distribution(self, distributions, attr_value, num):
         '''Create a list of dictionaries after comparing all the continous distributions using ks-test.
 
         Args:
@@ -197,10 +191,10 @@ class Auditor():
             A list of dictionaries after comparing all the continous distributions using ks-test.
         '''
         distributions_list = []
-        all_distributions_checks = self.identify_goodness_of_fit(attr_value)
+        all_distributions_checks = self.identify_goodness_of_fit(attr_value, num)
         distributions_list.append(all_distributions_checks)
         for distribution in distributions:
-            key = __builtins__.list(distribution)[0]
+            key = list(distribution)[0]
             attr = distribution[key]
             distributions_list.append(
                 self.apply_predefined_distribution_check(
@@ -210,7 +204,7 @@ class Auditor():
         return distributions_list
 
     def create_distribution_from_attr(
-            self, dist_type, dist_charecteristics, n_samples=1000):
+            self, dist_type, dist_charecteristics, n_samples=1000, seed=0):
         '''Generates a sample of values that are drawn from the chosen distribution.
 
         Args:
@@ -221,34 +215,31 @@ class Auditor():
         Returns:
             A list of the sampled values from the distributions.
         '''
-        try:
-            if dist_type == 'normal':
-                return np.random.normal(loc=dist_charecteristics['mean'],
-                                        scale=dist_charecteristics['std'],
-                                        size=n_samples)
-            elif dist_type == 'poisson':
-                return np.random.poisson(lam=dist_charecteristics['lambda'], size=n_samples)
-            elif dist_type == 'beta':
-                return np.random.beta(a=dist_charecteristics['a'],
-                                      b=dist_charecteristics['b'],
-                                      size=n_samples)
-            elif dist_type == 'gamma':
-                return np.random.gamma(shape=dist_charecteristics['k'],
-                                       scale=dist_charecteristics['theta'],
-                                       size=n_samples)
-            elif dist_type == 'weibull':
-                return np.random.weibull(a=dist_charecteristics['a'], size=n_samples)
-            elif dist_type == 'uniform':
-                return np.random.uniform(low=dist_charecteristics['low'],
-                                         high=dist_charecteristics['high'],
-                                         size=n_samples)
-            elif dist_type == 'powerlaw':
-                return np.random.power(a=dist_charecteristics['a'], size=n_samples)
-            elif dist_type == 'expon':
-                return np.random.exponential(scale=dist_charecteristics['scale'], size=n_samples)
-        except KeyError as e:
-            print(e.args)
-            return None
+        np.random.seed(seed)
+        if dist_type == 'normal':
+            return np.random.normal(loc=dist_charecteristics['mean'],
+                                    scale=dist_charecteristics['std'],
+                                    size=n_samples)
+        elif dist_type == 'poisson':
+            return np.random.poisson(lam=dist_charecteristics['lambda'], size=n_samples)
+        elif dist_type == 'beta':
+            return np.random.beta(a=dist_charecteristics['a'],
+                                  b=dist_charecteristics['b'],
+                                  size=n_samples)
+        elif dist_type == 'gamma':
+            return np.random.gamma(shape=dist_charecteristics['k'],
+                                   scale=dist_charecteristics['theta'],
+                                   size=n_samples)
+        elif dist_type == 'weibull':
+            return np.random.weibull(a=dist_charecteristics['a'], size=n_samples)
+        elif dist_type == 'uniform':
+            return np.random.uniform(low=dist_charecteristics['low'],
+                                     high=dist_charecteristics['high'],
+                                     size=n_samples)
+        elif dist_type == 'powerlaw':
+            return np.random.power(a=dist_charecteristics['a'], size=n_samples)
+        elif dist_type == 'expon':
+            return np.random.exponential(scale=dist_charecteristics['scale'], size=n_samples)
 
     def compare_distributions_one_sample(self, x, dist_type, args=()):
         '''Compares one sample of values to a certain distribution.
@@ -282,7 +273,7 @@ class Auditor():
         result['ks_test'] = {'statistic': ks_result[0], 'pvalue': ks_result[1]}
         return result
 
-    def identify_goodness_of_fit(self, x):
+    def identify_goodness_of_fit(self, x, num):
         '''Generates the most fitted distribution to the given observations.
 
         Args:
@@ -318,7 +309,7 @@ class Auditor():
                                  stats.truncexpon, stats.truncnorm, stats.tukeylambda,
                                  stats.uniform, stats.vonmises, stats.vonmises_line,
                                  stats.weibull_min, stats.weibull_max, stats.wrapcauchy]
-
+        list_of_distributions = list_of_distributions[:num]
         ks_for_all_distributions = []
         with warnings.catch_warnings():
             warnings.filterwarnings('ignore')
@@ -329,7 +320,7 @@ class Auditor():
                                                  'ks statistic': result['ks_test']['statistic'],
                                                  'ks pvalue': result['ks_test']['pvalue'],
                                                  'mle args': list(mle_result)})
-        return {'most_fit_distribution':ks_for_all_distributions}
+        return {'most_fit_distribution': ks_for_all_distributions}
 
     def apply_predefined_distribution_check(self, x, dist_type='normal', dist_charecteristics={}):
         '''Applies the one and two samples distribution comparisons.
@@ -340,7 +331,8 @@ class Auditor():
             dist_charecteristics: A dictionary that contains the attributes of the distribution.
 
         Returns:
-            A dictionary of the comparison result using ks-test for specific continous distributions.
+            A dictionary of the comparison result using ks-test for specific continous
+            distributions.
         '''
         simulated_dist = self.create_distribution_from_attr(
             dist_type=dist_type, dist_charecteristics=dist_charecteristics, n_samples=10000)
