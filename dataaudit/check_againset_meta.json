@@ -1,0 +1,50 @@
+{
+    "Patient": [
+        {
+            "birthdate": [
+                {
+                    "distribution": [
+                        {
+                            "normal": {
+                                "max": 2018,
+                                "mean": 1999,
+                                "min": 1917,
+                                "std": 2000
+                            }
+                        }
+                    ]
+                },
+                {
+                    "min": 0
+                },
+                {
+                    "max": 130
+                },
+                {
+                    "nan": {
+                        "number": 0,
+                        "percenatge": "0.00%"
+                    }
+                }
+            ]
+        },
+        {
+            "gender": [
+                {
+                    "percenatge": {
+                        "female": 0,
+                        "male": 0,
+                        "other": 0,
+                        "unknown": 0
+                    }
+                },
+                {
+                    "nan": {
+                        "number": 0,
+                        "percenatge": "0.00%"
+                    }
+                }
+            ]
+        }
+    ]
+}
