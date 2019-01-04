@@ -1,12 +1,12 @@
 import json
 import warnings
+from itertools import groupby
 
 import numpy as np
 import pandas as pd
 from numpy import nan
 from scipy import stats
 from scipy.stats import ks_2samp, kstest
-from itertools import groupby
 
 
 class Auditor():

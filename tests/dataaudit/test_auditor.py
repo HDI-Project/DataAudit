@@ -15,9 +15,11 @@ def create_df():
                          'birthdate': ['10/21/2000', 'unknown', '1/10/2000', '9/16/2000'],
                          'address': ['undefined', '4060246413000', '406026413022', '40677564000']})
 
+
 @pytest.fixture()
 def total_nans_df():
     return pd.DataFrame({'identifier': [0, 1, 2, 3]})
+
 
 @pytest.fixture()
 def get_check_list():
@@ -58,10 +60,12 @@ def test_find_percentage():
     assert auditor.Auditor().find_percentage(
         'gender', ['null', 'Nan', 'male', 'female']) == expected_output
 
+
 def test_find_frequency():
     expected_output = {'female': 1, 'male': 2}
     assert auditor.Auditor().find_frequency(
         ['female', 'male', 'male']) == expected_output
+
 
 def test_find_minimum_error():
     with pytest.raises(TypeError):
