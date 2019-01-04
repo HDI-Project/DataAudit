@@ -152,6 +152,18 @@ class Auditor():
             dictionary_of_percenatges[attr] = "%.2f%%" % round(percenatge, 2)
         return{"percenatge": dictionary_of_percenatges}
 
+    def find_frequency_of_visits(self, attr_value):
+        '''Calculates the frequency of the attribute values.
+
+        Args:
+            attr_value: A list of values for the a specific attribute.
+
+        Returns:
+            A dictionary with the frequency of occurance for each value.
+        '''
+        freq = [len(list(group)) for key, group in groupby(attr_value)]
+        return {"freq": "%.2f" % round(np.mean(freq), 2)}
+
     def find_minimum(self, attr_value):
         '''Finds the minimum value in a specific attribute.
 
@@ -177,6 +189,20 @@ class Auditor():
         '''
         if(all(isinstance(x, (int, float)) for x in attr_value)):
             return {"max": np.int(max(attr_value))}
+        else:
+            raise TypeError("The list: '{}' must be numerical".format(attr_value))
+
+    def find_mean(self, attr_value):
+        '''Finds the mean value in a specific attribute.
+
+        Args:
+            attr_value: A list of values for the a specific attribute.
+
+        Returns:
+            A dictionary with the mean value.
+        '''
+        if(all(isinstance(x, (int, float)) for x in attr_value)):
+            return {"mean": np.int(np.mean(attr_value))}
         else:
             raise TypeError("The list: '{}' must be numerical".format(attr_value))
 
