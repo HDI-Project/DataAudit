@@ -6,6 +6,7 @@ import pandas as pd
 from numpy import nan
 from scipy import stats
 from scipy.stats import ks_2samp, kstest
+from itertools import groupby
 
 
 class Auditor():
@@ -165,8 +166,8 @@ class Auditor():
         Returns:
             A dictionary with the frequency of occurance for each value.
         '''
-        freq = [len(list(group)) for key, group in groupby(attr_value)]
-        return {"freq": "%.2f" % round(np.mean(freq), 2)}
+        freq = {key: len(list(group)) for (key, group) in groupby(attr_value)}
+        return freq
 
     def find_minimum(self, attr_value):
         '''Finds the minimum value in a specific attribute.
