@@ -126,8 +126,12 @@ class Auditor():
                     modefied_check_list.append(self.find_minimum(attr_value))
                 if("max" in check):
                     modefied_check_list.append(self.find_maximum(attr_value))
+                if("mean" in check):
+                    modefied_check_list.append(self.find_mean(attr_value))
                 if("nan" in check):
                     modefied_check_list.append(self.check_nan(attr_value))
+                if("freq" in check):
+                    modefied_check_list.append(self.find_frequency(attr_value))
                 if("percenatge" in check):
                     modefied_check_list.append(self.find_percentage(key, attr_value))
             fields_list.append({key: modefied_check_list})
@@ -152,7 +156,7 @@ class Auditor():
             dictionary_of_percenatges[attr] = "%.2f%%" % round(percenatge, 2)
         return{"percenatge": dictionary_of_percenatges}
 
-    def find_frequency_of_visits(self, attr_value):
+    def find_frequency(self, attr_value):
         '''Calculates the frequency of the attribute values.
 
         Args:
