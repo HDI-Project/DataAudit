@@ -29,18 +29,25 @@ class Auditor():
         Args:
           entitysets: The entire Fhir entitysets.
           meta_json_filepath: A path for the json file.
+
+        Returns:
+          A dictionary with resulting checks.
         '''
         with open(meta_json_filepath) as file:
             check_againset_meta = json.load(file)
-            self.create_check_list(entitysets, check_againset_meta)
+            return self.create_check_list(entitysets, check_againset_meta)
 
-    def create_check_list(self, entitysets, check_againset_meta):
+    def create_check_list(self, entitysets, check_againset_meta, write=False):
         '''Creates a list of all the check fields from the json file.
 
         Args:
           entitysets: The entire Fhir entitysets.
           check_againset_meta: A json object, which encapsulates a value
               for each check.
+          write: A flag for locally writing a json file.
+
+        Returns:
+          A dictionary with resulting checks and violations.
         '''
         # Number of nans for all entities.
         check_list = []
@@ -56,7 +63,10 @@ class Auditor():
                     if field in checks:
                         check_list.append(checks)
             violation[entity_name] = self.find_type(df, check_list)
-        self.write_check_violation(violation, "violation_check_againset_meta.json")
+        if write:
+            self.write_check_violation(violation, "violation_check_againset_meta.json")
+
+        return violation
 
     def check_total_nans(self, entity_name, df):
         '''Checks the number of nans for all the attributes within a specific entity.
